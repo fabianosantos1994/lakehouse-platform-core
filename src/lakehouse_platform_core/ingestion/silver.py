@@ -18,6 +18,7 @@ def run_silver_full_load(
         spark=spark,
         dataframe=dataframe,
         target_table=target_table,
+        target_path=derived_paths.silver_path,
     )
 
     return target_table

@@ -5,6 +5,7 @@ def write_iceberg_table_full(
     spark: SparkSession,
     dataframe: DataFrame,
     target_table: str,
+    target_path: str,
 ) -> None:
     namespace = _derive_namespace(target_table)
     spark.sql(f"CREATE NAMESPACE IF NOT EXISTS {namespace}")
@@ -13,6 +14,7 @@ def write_iceberg_table_full(
         dataframe.writeTo(target_table)
         .using("iceberg")
         .tableProperty("format-version", "2")
+        .tableProperty("location", target_path)
         .createOrReplace()
     )
 
