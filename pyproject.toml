@@ -1,0 +1,16 @@
+[project]
+name = "lakehouse-platform-core"
+version = "0.1.0"
+description = "Reusable execution core for local Lakehouse pipelines"
+requires-python = ">=3.10"
+dependencies = [
+    "pyspark",
+    "PyYAML",
+]
+
+[project.scripts]
+lakehouse-ingestion = "lakehouse_platform_core.cli.ingestion:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
