@@ -6,39 +6,39 @@ This repository contains the reusable execution core for the local Lakehouse Ing
 
 The first validated V1 flow supports:
 
-- relational source ingestion from Postgres
-- Bronze as raw Parquet files in object storage
-- Silver as technical Iceberg tables
-- one-table-at-a-time execution through CLI
+* relational source ingestion from Postgres
+* Bronze as raw Parquet files in object storage
+* Silver as technical Iceberg tables
+* one-table-at-a-time execution through CLI
 
 ## Current V1 Scope
 
 ### Supported source
 
-- Postgres only
+* Postgres only
 
 ### Supported load type
 
-- full load only
+* full load only
 
 ### Supported layers
 
-- Bronze
-- Silver
+* Bronze
+* Silver
 
 ### Layer semantics
 
 #### Bronze
 
-- raw Parquet files
-- stored in object storage
-- derived physical path controlled by the engine
+* raw Parquet files
+* stored in object storage
+* derived physical path controlled by the engine
 
 #### Silver
 
-- technical Iceberg tables
-- registered in catalog `lakehouse`
-- physical location explicitly controlled by the engine
+* technical Iceberg tables
+* registered in catalog `lakehouse`
+* physical location explicitly controlled by the engine
 
 ## Validated Flow
 
@@ -52,14 +52,14 @@ Postgres -> Bronze raw parquet -> Silver Iceberg
 
 It is responsible for:
 
-- loading ingestion YAML definitions
-- validating the V1 YAML contract
-- deriving physical Bronze and Silver paths
-- resolving Postgres connection settings from environment variables
-- reading Postgres tables through Spark JDBC
-- writing Bronze raw Parquet files
-- writing Silver Iceberg tables
-- executing one table and one layer at a time
+* loading ingestion YAML definitions
+* validating the V1 YAML contract
+* deriving physical Bronze and Silver paths
+* resolving Postgres connection settings from environment variables
+* reading Postgres tables through Spark JDBC
+* writing Bronze raw Parquet files
+* writing Silver Iceberg tables
+* executing one table and one layer at a time
 
 This repository does not contain pipeline definitions. YAML ingestion definitions live in `lakehouse-ingestion-engine`.
 
@@ -136,14 +136,16 @@ lakehouse.silver_purchase.public_transactions
 
 ## Required Environment Variables
 
-Spark / MinIO access:
+### Spark / MinIO access
 
 ```env
 S3_ACCESS_KEY=minio
 S3_SECRET_KEY=minio123
 ```
 
-Postgres source connection for `connection_id: purchase_postgres`:
+### Postgres source connection
+
+For `connection_id: purchase_postgres`:
 
 ```env
 PURCHASE_POSTGRES_HOST=postgres
@@ -153,11 +155,23 @@ PURCHASE_POSTGRES_USERNAME=<username>
 PURCHASE_POSTGRES_PASSWORD=<password>
 ```
 
+### Python path inside the Spark container
+
+```bash
+export PYTHONPATH=/opt/project/lakehouse-platform-core/src:/opt/spark/python:/opt/spark/python/lib/py4j-0.10.9.7-src.zip
+```
+
 Credentials are not stored in YAML.
 
 ## PostgreSQL JDBC Driver Requirement
 
 The Spark runtime must include the PostgreSQL JDBC driver.
+
+Expected driver path:
+
+```text
+/opt/spark/jars/postgresql-42.7.3.jar
+```
 
 Expected driver class:
 
@@ -180,23 +194,49 @@ driver = org.postgresql.Driver
 python -m lakehouse_platform_core.cli.ingestion \
   --config /opt/project/lakehouse-ingestion-engine/configs/ingestion/purchase/full.yaml \
   --list-tables
+```
 
-Run Bronze for one table:
+Expected output:
 
-```bash id="5zebx2"
+```text
+transactions
+customers
+```
+
+### Run Bronze for one table
+
+```bash
 python -m lakehouse_platform_core.cli.ingestion \
   --config /opt/project/lakehouse-ingestion-engine/configs/ingestion/purchase/full.yaml \
   --table transactions \
   --step bronze
 ```
 
-Run Silver for one table:
+Expected output:
 
-```bash id="5zebx2"
+```text
+Step completed successfully.
+Step: bronze
+Table: transactions
+Result: s3a://lakehouse/bronze/postgres/spark/purchase/public_transactions/
+```
+
+### Run Silver for one table
+
+```bash
 python -m lakehouse_platform_core.cli.ingestion \
   --config /opt/project/lakehouse-ingestion-engine/configs/ingestion/purchase/full.yaml \
   --table transactions \
   --step silver
+```
+
+Expected output:
+
+```text
+Step completed successfully.
+Step: silver
+Table: transactions
+Result: lakehouse.silver_purchase.public_transactions
 ```
 
 Bronze must be executed before Silver because Silver reads from the derived Bronze raw Parquet path.
@@ -245,12 +285,12 @@ Silver should contain Iceberg table data and metadata under the explicitly deriv
 
 ## Current Limitations
 
-- Only Postgres is supported.
-- Only full load is supported.
-- Only one table is executed per CLI command.
-- Bronze does not add metadata columns yet.
-- Silver is technical only and does not apply business rules.
-- Incremental ingestion is not implemented.
-- File ingestion is not implemented.
-- Airflow DAG generation is not implemented.
-- No retries, data quality checks, schema evolution, compaction, merge/upsert, or partitioning are implemented yet.
+* Only Postgres is supported.
+* Only full load is supported.
+* Only one table is executed per CLI command.
+* Bronze does not add metadata columns yet.
+* Silver is technical only and does not apply business rules.
+* Incremental ingestion is not implemented.
+* File ingestion is not implemented.
+* Airflow DAG generation is not implemented.
+* No retries, data quality checks, schema evolution, compaction, merge/upsert, or partitioning are implemented yet.
