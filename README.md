@@ -174,20 +174,27 @@ driver = org.postgresql.Driver
 
 ## CLI Execution Examples
 
-Run Bronze for one table:
+### List available tables
 
 ```bash
-lakehouse-ingestion \
-  --config /opt/configs/ingestion/purchase/full.yaml \
+python -m lakehouse_platform_core.cli.ingestion \
+  --config /opt/project/lakehouse-ingestion-engine/configs/ingestion/purchase/full.yaml \
+  --list-tables
+
+Run Bronze for one table:
+
+```bash id="5zebx2"
+python -m lakehouse_platform_core.cli.ingestion \
+  --config /opt/project/lakehouse-ingestion-engine/configs/ingestion/purchase/full.yaml \
   --table transactions \
   --step bronze
 ```
 
 Run Silver for one table:
 
-```bash
-lakehouse-ingestion \
-  --config /opt/configs/ingestion/purchase/full.yaml \
+```bash id="5zebx2"
+python -m lakehouse_platform_core.cli.ingestion \
+  --config /opt/project/lakehouse-ingestion-engine/configs/ingestion/purchase/full.yaml \
   --table transactions \
   --step silver
 ```
