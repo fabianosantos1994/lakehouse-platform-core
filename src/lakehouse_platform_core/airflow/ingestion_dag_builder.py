@@ -10,20 +10,10 @@ class IngestionDagBuilder:
         dag_factory: DagFactory | None = None,
         spark_container_name: str = "spark",
         pythonpath: str = "/opt/project/lakehouse-platform-core/src:/opt/spark/python:/opt/spark/python/lib/py4j-0.10.9.7-src.zip",
-        environment: dict[str, str] | None = None,
     ) -> None:
         self.dag_factory = dag_factory or DagFactory()
         self.spark_container_name = spark_container_name
         self.pythonpath = pythonpath
-        self.environment = environment or {
-            "PURCHASE_POSTGRES_HOST": "postgres",
-            "PURCHASE_POSTGRES_PORT": "5432",
-            "PURCHASE_POSTGRES_DATABASE": "purchase",
-            "PURCHASE_POSTGRES_USERNAME": "postgres",
-            "PURCHASE_POSTGRES_PASSWORD": "postgres",
-            "S3_ACCESS_KEY": "minio",
-            "S3_SECRET_KEY": "minio123",
-        }
 
     def build(self, config_path: str) -> DAG:
         config = load_ingestion_config(config_path)
@@ -43,7 +33,6 @@ class IngestionDagBuilder:
                     step="bronze",
                     spark_container_name=self.spark_container_name,
                     pythonpath=self.pythonpath,
-                    environment=self.environment,
                 ),
             )
             silver_task = self.dag_factory.create_command_task(
@@ -55,7 +44,6 @@ class IngestionDagBuilder:
                     step="silver",
                     spark_container_name=self.spark_container_name,
                     pythonpath=self.pythonpath,
-                    environment=self.environment,
                 ),
             )
 
@@ -70,7 +58,6 @@ def _build_command(
     step: str,
     spark_container_name: str,
     pythonpath: str,
-    environment: dict[str, str],
 ) -> str:
     cli_command = (
         "python -m lakehouse_platform_core.cli.ingestion "
@@ -79,11 +66,7 @@ def _build_command(
         f"--step {step}"
     )
 
-    environment_exports = " && ".join(
-        f"export {name}={value}" for name, value in environment.items()
-    )
     spark_command = (
-        f"{environment_exports} && "
         f"export PYTHONPATH={pythonpath} && "
         f"{cli_command}"
     )

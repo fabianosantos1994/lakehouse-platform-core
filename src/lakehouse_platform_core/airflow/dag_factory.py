@@ -9,13 +9,13 @@ class DagFactory:
     def __init__(
         self,
         owner: str = "lakehouse",
-        retries: int = 1,
+        retries: int = 0,
         start_date: datetime | None = None,
         catchup: bool = False,
     ) -> None:
         self.owner = owner
         self.retries = retries
-        self.start_date = start_date or datetime(2026, 1, 1)
+        self.start_date = start_date or datetime(2024, 1, 1)
         self.catchup = catchup
 
     def create_dag(
